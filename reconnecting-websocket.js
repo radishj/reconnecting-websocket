@@ -57,7 +57,7 @@
  *
  * Parameters
  * ==========
- * url - The url you are connecting to.
+ * url - The url you are connecting to. (The URL can be a method or a string)
  * protocols - Optional string or array of protocols.
  * options - See below
  *
@@ -72,6 +72,12 @@
  * var socket = new ReconnectingWebSocket(url);
  * socket.debug = true;
  * socket.reconnectInterval = 4000;
+ *
+ * or
+ *
+ * var webSocket = new ReconnectingWebSocket(function() {
+ *     return 'ws://' + Hosts[parseInt(Math.random() * Hosts.length)] + ':port'
+ * }, null, { binaryType: 'arraybuffer', debug: true });
  *
  * debug
  * - Whether this instance should log debug messages. Accepts true or false. Default: false.
@@ -91,6 +97,14 @@
  * timeoutInterval
  * - The maximum time in milliseconds to wait for a connection to succeed before closing and retrying. Accepts integer. Default: 2000.
  *
+ * changeLog
+ * =========
+ * - baili<https://github.com/radishj>
+ * - Modify the parameters into the support function to support IP rotation
+ * - 2016.07.21
+ *
+ * =========
+ * - The original version
  */
 (function(global, factory) {
     if (typeof define === 'function' && define.amd) {
