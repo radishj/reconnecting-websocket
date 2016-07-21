@@ -54,10 +54,24 @@ This is all handled automatically for you by the library.
 
 ```javascript
 var socket = new ReconnectingWebSocket(url, protocols, options);
+
+or
+
+var Hosts = [
+        'IP1',
+        'IP2',
+        'IP3',
+        'IP4'
+    ]
+// If the url is method, the socket in the initialization or break even when the random change of IP
+var socket = new ReconnectingWebSocket(function() {
+    return 'ws://' + Hosts[parseInt(Math.random() * (Hosts.length - 1 - 0 + 1) )] + ':port'
+}, protocols, options);
 ```
 
 #### `url`
 - The URL you are connecting to.
+- The URL can be a method or a string
 - https://html.spec.whatwg.org/multipage/comms.html#network
 
 #### `protocols`
