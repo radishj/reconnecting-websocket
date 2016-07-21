@@ -92,15 +92,15 @@
  * - The maximum time in milliseconds to wait for a connection to succeed before closing and retrying. Accepts integer. Default: 2000.
  *
  */
-(function (global, factory) {
+(function(global, factory) {
     if (typeof define === 'function' && define.amd) {
         define([], factory);
-    } else if (typeof module !== 'undefined' && module.exports){
+    } else if (typeof module !== 'undefined' && module.exports) {
         module.exports = factory();
     } else {
         global.ReconnectingWebSocket = factory();
     }
-})(this, function () {
+})(this, function() {
 
     if (!('WebSocket' in window)) {
         return;
@@ -176,11 +176,11 @@
 
         // Wire up "on*" properties as event handlers
 
-        eventTarget.addEventListener('open',       function(event) { self.onopen(event); });
-        eventTarget.addEventListener('close',      function(event) { self.onclose(event); });
+        eventTarget.addEventListener('open', function(event) { self.onopen(event); });
+        eventTarget.addEventListener('close', function(event) { self.onclose(event); });
         eventTarget.addEventListener('connecting', function(event) { self.onconnecting(event); });
-        eventTarget.addEventListener('message',    function(event) { self.onmessage(event); });
-        eventTarget.addEventListener('error',      function(event) { self.onerror(event); });
+        eventTarget.addEventListener('message', function(event) { self.onmessage(event); });
+        eventTarget.addEventListener('error', function(event) { self.onerror(event); });
 
         // Expose the API required by EventTarget
 
@@ -200,15 +200,18 @@
          * @param args Object an optional object that the event will use
          */
         function generateEvent(s, args) {
-        	var evt = document.createEvent("CustomEvent");
-        	evt.initCustomEvent(s, false, false, args);
-        	return evt;
+            var evt = document.createEvent("CustomEvent");
+            evt.initCustomEvent(s, false, false, args);
+            return evt;
         };
 
-        this.open = function (reconnectAttempt) {
-            ws = new WebSocket(self.url, protocols || []);
+        this.open = function(reconnectAttempt) {
+            if (typeof self.url === 'function') {
+                ws = new WebSocket(self.url(), protocols || []);
+            } else {
+                ws = new WebSocket(self.url, protocols || []);
+            }
             ws.binaryType = this.binaryType;
-
             if (reconnectAttempt) {
                 if (this.maxReconnectAttempts && this.reconnectAttempts > this.maxReconnectAttempts) {
                     return;
@@ -219,13 +222,23 @@
             }
 
             if (self.debug || ReconnectingWebSocket.debugAll) {
-                console.debug('ReconnectingWebSocket', 'attempt-connect', self.url);
+                if (typeof self.url === 'function') {
+                    console.debug('ReconnectingWebSocket', 'attempt-connect', self.url, self.url());
+                } else {
+                    console.debug('ReconnectingWebSocket', 'attempt-connect', self.url);
+                }
+
             }
 
             var localWs = ws;
             var timeout = setTimeout(function() {
                 if (self.debug || ReconnectingWebSocket.debugAll) {
-                    console.debug('ReconnectingWebSocket', 'connection-timeout', self.url);
+                    if (typeof self.url === 'function') {
+                        console.debug('ReconnectingWebSocket', 'connection-timeout', self.url, self.url());
+                    } else {
+                        console.debug('ReconnectingWebSocket', 'connection-timeout', self.url);
+                    }
+
                 }
                 timedOut = true;
                 localWs.close();
@@ -235,7 +248,11 @@
             ws.onopen = function(event) {
                 clearTimeout(timeout);
                 if (self.debug || ReconnectingWebSocket.debugAll) {
-                    console.debug('ReconnectingWebSocket', 'onopen', self.url);
+                    if (typeof self.url === 'function') {
+                        console.debug('ReconnectingWebSocket', 'onopen', self.url, self.url());
+                    } else {
+                        console.debug('ReconnectingWebSocket', 'onopen', self.url);
+                    }
                 }
                 self.protocol = ws.protocol;
                 self.readyState = WebSocket.OPEN;
@@ -261,7 +278,11 @@
                     eventTarget.dispatchEvent(e);
                     if (!reconnectAttempt && !timedOut) {
                         if (self.debug || ReconnectingWebSocket.debugAll) {
-                            console.debug('ReconnectingWebSocket', 'onclose', self.url);
+                            if (typeof self.url === 'function') {
+                                console.debug('ReconnectingWebSocket', 'onclose', self.url, self.url());
+                            } else {
+                                console.debug('ReconnectingWebSocket', 'onclose', self.url);
+                            }
                         }
                         eventTarget.dispatchEvent(generateEvent('close'));
                     }
@@ -275,7 +296,12 @@
             };
             ws.onmessage = function(event) {
                 if (self.debug || ReconnectingWebSocket.debugAll) {
-                    console.debug('ReconnectingWebSocket', 'onmessage', self.url, event.data);
+                    if (typeof self.url === 'function') {
+                        console.debug('ReconnectingWebSocket', 'onmessage', self.url, self.url(), event, event.data);
+                    } else {
+                        console.debug('ReconnectingWebSocket', 'onmessage', self.url, event, event.data);
+                    }
+
                 }
                 var e = generateEvent('message');
                 e.data = event.data;
@@ -283,7 +309,12 @@
             };
             ws.onerror = function(event) {
                 if (self.debug || ReconnectingWebSocket.debugAll) {
-                    console.debug('ReconnectingWebSocket', 'onerror', self.url, event);
+                    if (typeof self.url === 'function') {
+                        console.debug('ReconnectingWebSocket', 'onerror', self.url, self.url(), event);
+                    } else {
+                        console.debug('ReconnectingWebSocket', 'onerror', self.url, event);
+                    }
+
                 }
                 eventTarget.dispatchEvent(generateEvent('error'));
             };
@@ -302,7 +333,11 @@
         this.send = function(data) {
             if (ws) {
                 if (self.debug || ReconnectingWebSocket.debugAll) {
-                    console.debug('ReconnectingWebSocket', 'send', self.url, data);
+                    if (typeof self.url === 'function') {
+                        console.debug('ReconnectingWebSocket', 'send', self.url, self.url(), data);
+                    } else {
+                        console.debug('ReconnectingWebSocket', 'send', self.url, data);
+                    }
                 }
                 return ws.send(data);
             } else {
